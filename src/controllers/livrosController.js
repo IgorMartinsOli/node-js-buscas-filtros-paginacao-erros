@@ -2,76 +2,111 @@ import livros from "../models/Livro.js";
 
 class LivroController {
 
-	static listarLivros = (req, res) => {
-		livros.find()
+	static listarLivros = async (req, res) => {
+		try{
+			const livrosResultados = await livros.find()
 			.populate("autor")
-			.exec((err, livros) => {
-				res.status(200).json(livros);
+			.exec();
+
+			res.status(200).json(livrosResultados);
+		}catch(error){
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
 			});
+		}
 	};
 
-	static listarLivroPorId = (req, res) => {
+	static listarLivroPorId = async (req, res) => {
 		const id = req.params.id;
 
-		livros.findById(id)
-			.populate("autor", "nome")
-			.exec((err, livros) => {
-				if(err) {
-					res.status(400).send({message: `${err.message} - Id do livro não localizado.`});
-				} else {
-					res.status(200).send(livros);
-				}
+		!id ? res.status(400).json({ message: "Id não passado" }) : null;
+		try{
+			const livro = await livros.findById(id);
+
+			res.status(200).send(JSON.stringify(livro));
+		}catch(error){
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
 			});
+		}
 	};
 
-	static cadastrarLivro = (req, res) => {
+	static cadastrarLivro = async (req, res) => {
 		let livro = new livros(req.body);
 
-		livro.save((err) => {
+		!livro ? res.status(400).json({ message: "Livro não passado" }) : null;
 
-			if(err) {
-				res.status(500).send({message: `${err.message} - falha ao cadastrar livro.`});
-			} else {
-				res.status(201).send(livro.toJSON());
-			}
-		});
+		try{
+			const livroSalvo = await livro.save();
+
+			res.status(200).send(JSON.stringify(livroSalvo));
+		}catch(error){
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
+			});
+		}
+
 	};
 
 	static atualizarLivro = (req, res) => {
 		const id = req.params.id;
 
-		livros.findByIdAndUpdate(id, {$set: req.body}, (err) => {
-			if(!err) {
-				res.status(200).send({message: "Livro atualizado com sucesso"});
-			} else {
-				res.status(500).send({message: err.message});
-			}
-		});
+		!id || !req.body ? res.status(400).json({ message: "Id ou dados não passados" }) : null;
+
+		try{
+			const livroAtualizado = livros.findByIdAndUpdate(id, {$set: req.body});
+
+			res.status(200).send(JSON.stringify(livroAtualizado));
+		}catch(error){
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
+			});
+		}
 	};
 
 	static excluirLivro = (req, res) => {
 		const id = req.params.id;
 
-		livros.findByIdAndDelete(id, (err) => {
-			if(!err){
-				res.status(200).send({message: "Livro removido com sucesso"});
-			} else {
-				res.status(500).send({message: err.message});
-			}
-		});
+		!id ? res.status(400).json({ message: "Id não passado" }) : null;
+
+		try {
+			livros.findByIdAndDelete(id);
+
+			res.status(200).send({message: "Livro excluido com sucesso"});
+		} catch (error) {
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
+			});
+		}
 	};
 
 	static listarLivroPorEditora = (req, res) => {
 		const editora = req.query.editora;
 
-		livros.find({"editora": editora}, {}, (err, livros) => {
-			res.status(200).send(livros);
+		!editora ? res.status(400).json({ message: "Editora não passado" }) : null;
 
-		});
+		try{
+			const livrosPorEditora = livros.find({"editora": editora});
+
+			res.status(200).send(JSON.stringify(livrosPorEditora));
+		}catch(error){
+			res.status(500).json({
+				message: "Erro interno no servidor",
+				error: error.message,
+				stack: error.stack
+			});
+		}
 	};
-
-
-
 }
 
 export default LivroController;

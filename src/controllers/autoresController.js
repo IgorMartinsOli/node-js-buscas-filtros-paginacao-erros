@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import autores from "../models/Autor.js";
 
 class AutorController {
@@ -23,13 +24,23 @@ class AutorController {
 		try{
 			const autor = await autores.findById(id);
 
-			res.status(200).send(JSON.stringify(autor));
+			if(autor){
+				res.status(200).send(JSON.stringify(autor));
+			}
+			
+			res.status(404).json({message: "Autor não encontrado"});
 		}catch(error){
-			res.status(500).json({
+			if(error instanceof mongoose.Error.CastError){
+				res.status(400).send({
+					message: "Id fornecidos está incorreto!"
+				});
+			}
+			res.status(500).send({
 				message: "Erro interno no servidor",
 				error: error.message,
 				stack: error.stack
 			});
+			
 		}
 	};
 
@@ -75,7 +86,7 @@ class AutorController {
 		!id ? res.status(400).json({ message: "Id não passado" }) : null;
 
 		try {
-			autores.findByIdAndDelete(id);
+			autores.deleteOne(id);
 
 			res.status(200).send({message: "Autor excluido com sucesso"});
 		} catch (error) {
