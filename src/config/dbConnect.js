@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
-require('dotenv').config()
+import dotenv from 'dotenv';
+dotenv.config();
 
 mongoose.connect(process.env.MONGO_DB_ATLAS_URL);
 
