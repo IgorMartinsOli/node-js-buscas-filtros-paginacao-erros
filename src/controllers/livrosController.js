@@ -1,6 +1,5 @@
 import NaoEncontrado from "../errors/NaoEncontrado.js";
 import { autores, livros } from "../models/index.js";
-import RequisicaoIncorreta from "../errors/RequisicaoIncorreta.js"
 
 class LivroController {
 
