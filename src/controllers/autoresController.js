@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import NaoEncontrado from "../errors/NaoEncontrado.js";
 import autores from "../models/Autor.js";
 
 class AutorController {
@@ -9,92 +9,68 @@ class AutorController {
 
 			res.status(200).json(autoresResultado);
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static listarAutorPorId = async (req, res) => {
+	static listarAutorPorId = async (req, res, next) => {
 		const id = req.params.id;
 
 		!id ? res.status(400).json({ message: "Id não passado" }) : null;
-		try{
+		try {
 			const autor = await autores.findById(id);
-
-			if(autor){
-				res.status(200).send(JSON.stringify(autor));
+		
+			if (autor) {
+			return res.status(200).send(JSON.stringify(autor));
 			}
-			
-			res.status(404).json({message: "Autor não encontrado"});
-		}catch(error){
-			if(error instanceof mongoose.Error.CastError){
-				res.status(400).send({
-					message: "Id fornecidos está incorreto!"
-				});
-			}
-			res.status(500).send({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
-			
+		
+			next(new NaoEncontrado("Autor não encontrado"));
+		} catch (error) {
+			next(error)
 		}
 	};
 
-	static cadastrarAutor = async (req, res) => {
+	static cadastrarAutor = async (req, res, next) => {
 		let autor = new autores(req.body);
 
-		!autor ? res.status(400).json({ message: "Autor não passado" }) : null;
+		!autor ? next(new NaoEncontrado("Autor não encontrado")) : null;
 
 		try{
 			const autorSalvo = await autor.save();
 
 			res.status(200).send(JSON.stringify(autorSalvo));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static atualizarAutor = (req, res) => {
+	static atualizarAutor = (req, res, next) => {
 		const id = req.params.id;
-
-		!id || !req.body ? res.status(400).json({ message: "Id ou dados não passados" }) : null;
 
 		try{
 			const autorAtualizado = autores.findByIdAndUpdate(id, {$set: req.body});
 
+			!autorAtualizado ? next(new NaoEncontrado("Autor não encontrado")) : null;
+
 			res.status(200).send(JSON.stringify(autorAtualizado));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static excluirAutor = (req, res) => {
+	static excluirAutor = (req, res, next) => {
 		const id = req.params.id;
 
 		!id ? res.status(400).json({ message: "Id não passado" }) : null;
 
 		try {
-			autores.deleteOne(id);
+			const autorDeletado = autores.deleteOne(id);
+
+			!autorDeletado ? next(new NaoEncontrado("Autor não encontrado")) : null;
 
 			res.status(200).send({message: "Autor excluido com sucesso"});
 		} catch (error) {
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error)
 		}
 	};
 }

@@ -2,7 +2,7 @@ import livros from "../models/Livro.js";
 
 class LivroController {
 
-	static listarLivros = async (req, res) => {
+	static listarLivros = async (req, res, next) => {
 		try{
 			const livrosResultados = await livros.find()
 			.populate("autor")
@@ -10,15 +10,11 @@ class LivroController {
 
 			res.status(200).json(livrosResultados);
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static listarLivroPorId = async (req, res) => {
+	static listarLivroPorId = async (req, res, next) => {
 		const id = req.params.id;
 
 		!id ? res.status(400).json({ message: "Id não passado" }) : null;
@@ -27,15 +23,11 @@ class LivroController {
 
 			res.status(200).send(JSON.stringify(livro));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static cadastrarLivro = async (req, res) => {
+	static cadastrarLivro = async (req, res, next) => {
 		let livro = new livros(req.body);
 
 		!livro ? res.status(400).json({ message: "Livro não passado" }) : null;
@@ -45,11 +37,7 @@ class LivroController {
 
 			res.status(200).send(JSON.stringify(livroSalvo));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 
 	};
@@ -64,15 +52,11 @@ class LivroController {
 
 			res.status(200).send(JSON.stringify(livroAtualizado));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error);
 		}
 	};
 
-	static excluirLivro = (req, res) => {
+	static excluirLivro = (req, res, next) => {
 		const id = req.params.id;
 
 		!id ? res.status(400).json({ message: "Id não passado" }) : null;
@@ -82,15 +66,11 @@ class LivroController {
 
 			res.status(200).send({message: "Livro excluido com sucesso"});
 		} catch (error) {
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error)
 		}
 	};
 
-	static listarLivroPorEditora = (req, res) => {
+	static listarLivroPorEditora = (req, res, next) => {
 		const editora = req.query.editora;
 
 		!editora ? res.status(400).json({ message: "Editora não passado" }) : null;
@@ -100,11 +80,7 @@ class LivroController {
 
 			res.status(200).send(JSON.stringify(livrosPorEditora));
 		}catch(error){
-			res.status(500).json({
-				message: "Erro interno no servidor",
-				error: error.message,
-				stack: error.stack
-			});
+			next(error)
 		}
 	};
 }
